@@ -1,0 +1,18 @@
+{
+  "name": "nuxt-usecookie-middleware-listener-leak",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "start": "PORT=3519 HOST=127.0.0.1 node .output/server/index.mjs",
+    "count": "node count.mjs"
+  },
+  "dependencies": {
+    "nuxt": "4.6.4",
+    "vue": "3.5.44",
+    "vue-router": "5.4.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.52.0"
+  }
+}
