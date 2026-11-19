@@ -14,6 +14,7 @@ pnpm start            # serves http://127.0.0.1:3519
 # in a second terminal:
 node count.mjs http://127.0.0.1:3519 50 link     # navigate with <NuxtLink>
 node count.mjs http://127.0.0.1:3519 50 button   # navigate with navigateTo()
+node count-no-cookiestore.mjs http://127.0.0.1:3519 50   # Cookie Store removed: counts open BroadcastChannels
 ```
 
 ## Result
@@ -24,5 +25,6 @@ node count.mjs http://127.0.0.1:3519 50 button   # navigate with navigateTo()
 | Middleware, `navigateTo()` | 1 | 51 |
 | Middleware removed, `<NuxtLink>` | 0 | 0 |
 | Middleware removed, `navigateTo()` | 0 | 0 |
+| Middleware, Cookie Store removed (open `nuxt:cookies:*` BroadcastChannels) | 1 | 51 |
 
 `count.mjs` wraps `CookieStore.prototype.addEventListener` / `removeEventListener` in an init script and counts live `change` listeners.
