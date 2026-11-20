@@ -19,6 +19,8 @@ done
 
 echo "## freshness (mode: default)"
 start default 1
-node fresh.mjs "http://127.0.0.1:$PORT"
-node fresh.mjs "http://127.0.0.1:$PORT" --no-cookiestore
+for d in 0 100; do
+  node fresh.mjs "http://127.0.0.1:$PORT" --delay=$d
+  node fresh.mjs "http://127.0.0.1:$PORT" --no-cookiestore --delay=$d
+done
 stop
