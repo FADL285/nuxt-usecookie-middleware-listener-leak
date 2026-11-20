@@ -1,0 +1,31 @@
+## mode: none
+cookieStore, 50 navs: listeners 0 -> 0, writers 0 -> 0, appScopeEffects 0 -> 0
+no cookieStore, 50 navs: channels 0 -> 0, writers 0 -> 0, appScopeEffects 0 -> 0
+## mode: default
+cookieStore, 50 navs: listeners 1 -> 51, writers 1 -> 51, appScopeEffects 1 -> 51
+no cookieStore, 50 navs: channels 1 -> 51, writers 1 -> 51, appScopeEffects 1 -> 51
+## mode: readonly
+cookieStore, 50 navs: listeners 1 -> 51, writers 1 -> 51, appScopeEffects 0 -> 0
+no cookieStore, 50 navs: channels 1 -> 51, writers 1 -> 51, appScopeEffects 0 -> 0
+## mode: alt-options
+cookieStore, 50 navs: listeners 1 -> 51, writers 1 -> 51, appScopeEffects 1 -> 76
+no cookieStore, 50 navs: channels 1 -> 51, writers 1 -> 51, appScopeEffects 1 -> 76
+## mode: inline-default
+cookieStore, 50 navs: listeners 1 -> 51, writers 1 -> 51, appScopeEffects 1 -> 51
+no cookieStore, 50 navs: channels 1 -> 51, writers 1 -> 51, appScopeEffects 1 -> 51
+## mode: no-scope
+cookieStore, 50 navs: listeners 1 -> 51, writers 0 -> 0, appScopeEffects 0 -> 0
+no cookieStore, 50 navs: channels 1 -> 51, writers 0 -> 0, appScopeEffects 0 -> 0
+## freshness (mode: default)
+cookieStore, delay 0ms, component write -> fresh, fresh, fresh
+cookieStore, delay 0ms, document write -> fresh, fresh, fresh
+cookieStore, delay 0ms, server write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, component write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, document write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, server write -> fresh, fresh, fresh
+cookieStore, delay 100ms, component write -> fresh, fresh, fresh
+cookieStore, delay 100ms, document write -> fresh, fresh, fresh
+cookieStore, delay 100ms, server write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, component write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, document write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, server write -> fresh, fresh, fresh
