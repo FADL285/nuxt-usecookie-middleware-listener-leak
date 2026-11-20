@@ -1,0 +1,27 @@
+diff --git a/dist/app/composables/cookie.js b/dist/app/composables/cookie.js
+index ba5298851d5f7cead49f3fd9b265b1ac9878a75b..058bf116300d196860fe12ba9702cb5e44b75df0 100644
+--- a/dist/app/composables/cookie.js
++++ b/dist/app/composables/cookie.js
+@@ -35,7 +35,22 @@ const CookieDefaults = {
+ 	refresh: false
+ };
+ const store = import.meta.client && cookieStore ? globalThis.cookieStore : void 0;
++// Sketch from nuxt/nuxt#37169 (atokim4): one ref per cookie name when called directly in the app scope.
+ function useCookie(name, _opts) {
++	if (import.meta.client) {
++		const app = tryUseNuxtApp();
++		if (app && getCurrentScope() === app._scope) {
++			const cache = app._cookieRefs ||= new Map();
++			const hit = cache.get(name);
++			if (hit && isEqual(hit.opts, _opts)) return hit.ref;
++			const ref = createCookie(name, _opts);
++			cache.set(name, { opts: _opts, ref });
++			return ref;
++		}
++	}
++	return createCookie(name, _opts);
++}
++function createCookie(name, _opts) {
+ 	const opts = {
+ 		...CookieDefaults,
+ 		..._opts
