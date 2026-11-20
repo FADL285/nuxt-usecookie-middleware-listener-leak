@@ -1,1 +1,1 @@
-<template><p>page b</p></template>
+<template><p>page b <Writers v-if="$config.public.writers" /></p></template>
