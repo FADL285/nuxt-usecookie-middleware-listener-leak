@@ -1,6 +1,7 @@
 // Reads a cookie on every navigation. The docs list route middleware as a valid place for composables.
 // NUXT_PUBLIC_MODE picks the variant; the value read is pushed to window.__seen for the freshness checks.
 let calls = 0
+let shared: Ref<string | null> | undefined
 
 export default defineNuxtRouteMiddleware(async () => {
   const mode = useRuntimeConfig().public.mode
@@ -19,6 +20,38 @@ export default defineNuxtRouteMiddleware(async () => {
     case 'inline-default':
       // A new function object on every call, as inline options usually are.
       return seen(useCookie('x', { default: () => 0 }).value)
+    case 'maxage':
+      // An expiring cookie goes through Nuxt's internal cookieRef (its own watcher and timeout).
+      return seen(useCookie('x', { maxAge: 60 }).value)
+    case 'both':
+      // One call before an await (app scope) and one after it (no scope).
+      useCookie('x').value
+      await Promise.resolve()
+      return seen(useCookie('x').value)
+    case 'mw-write':
+      // A plain assignment in middleware. window.__mwWrote is what should reach document.cookie.
+      if (import.meta.client) {
+        const written = String(++calls)
+        useCookie<string>('w').value = written
+        ;(window as any).__mwWrote = written
+      }
+      return
+    case 'mw-deep':
+      // A deep mutation, which the docs say the default deep watch persists.
+      if (import.meta.client) {
+        const cookie = useCookie<{ n: number }>('d', { default: () => ({ n: 0 }) })
+        cookie.value.n = ++calls
+        ;(window as any).__mwDeep = calls
+      }
+      return
+    case 'shared-ref':
+      // An app-lifetime ref created in app._scope the first time middleware needs it,
+      // the way an app-level helper that shares one ref per cookie would.
+      if (import.meta.client) {
+        shared ||= useNuxtApp()._scope.run(() => useCookie<string | null>('s'))
+        ;(window as any).__sharedRef = shared
+      }
+      return
     case 'no-scope':
       // After an await the effect scope is no longer active.
       await Promise.resolve()

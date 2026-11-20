@@ -9,7 +9,7 @@ start() {
 }
 stop() { kill "$(ss -ltnp "sport = :$PORT" | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2)"; sleep 0.5; }
 
-for mode in none default readonly alt-options inline-default no-scope; do
+for mode in none default readonly alt-options inline-default maxage no-scope both; do
   echo "## mode: $mode"
   start "$mode"
   node count-all.mjs "http://127.0.0.1:$PORT" 50
@@ -17,10 +17,27 @@ for mode in none default readonly alt-options inline-default no-scope; do
   stop
 done
 
-echo "## freshness (mode: default)"
-start default 1
-for d in 0 100; do
-  node fresh.mjs "http://127.0.0.1:$PORT" --delay=$d
-  node fresh.mjs "http://127.0.0.1:$PORT" --no-cookiestore --delay=$d
+# default reads before any await (app scope); no-scope reads after one.
+for mode in default no-scope; do
+  echo "## freshness (mode: $mode)"
+  start "$mode" 1
+  for d in 0 100; do
+    node fresh.mjs "http://127.0.0.1:$PORT" --delay=$d
+    node fresh.mjs "http://127.0.0.1:$PORT" --no-cookiestore --delay=$d
+  done
+  stop
+done
+
+echo "## one-shot checks"
+start none
+for check in plugin timer; do
+  node oneshot.mjs "http://127.0.0.1:$PORT" $check
+  node oneshot.mjs "http://127.0.0.1:$PORT" $check --no-cookiestore
 done
 stop
+for pair in mw-write:mw-write mw-deep:mw-deep shared-ref:shared; do
+  start "${pair%%:*}"
+  node oneshot.mjs "http://127.0.0.1:$PORT" "${pair##*:}"
+  node oneshot.mjs "http://127.0.0.1:$PORT" "${pair##*:}" --no-cookiestore
+  stop
+done
