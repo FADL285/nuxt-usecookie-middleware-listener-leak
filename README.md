@@ -80,3 +80,47 @@ Freshness with the cache (the middleware reads one cached ref):
 | server `Set-Cookie`       | fresh                  | fresh                | stale (never updates)     | stale (never updates)   |
 
 The cached ref only changes when a `cookieStore` change event or a BroadcastChannel message arrives. A change event arrives after the next navigation has already started. A BroadcastChannel message is only sent by another `useCookie` ref, so a `document.cookie` or `Set-Cookie` write never reaches it. Without the cache, each call reads `document.cookie`, so all of these cases are fresh.
+
+## Trying one-shot calls (second sketch from the issue thread)
+
+Branch `try-one-shot-calls` applies the [second sketch](https://github.com/nuxt/nuxt/issues/37169#issuecomment-7041850360) as a pnpm patch. On the client, a call with no active scope, or a call in `app._scope` while `nuxtApp._processingMiddleware` is set, returns a plain `customRef` that writes `document.cookie` on set and registers no listener, writer or watcher. The results are in `results-one-shot-baseline.txt` (unpatched 4.6.4) and `results-one-shot-patched.txt`.
+
+Extra middleware variants on this branch:
+- `maxage`: `{ maxAge: 60 }` on every call;
+- `both`: one call before an `await` and one after it;
+- `mw-write`: a plain assignment;
+- `mw-deep`: a deep mutation of an object cookie;
+- `shared-ref`: a ref created once in `app._scope` the first time the middleware needs it.
+
+`oneshot.mjs` runs the checks that aren't counters.
+
+Start → after 50 navigations (Chromium; the numbers are the same without Cookie Store):
+
+| Middleware variant | Unpatched: listeners / writers / `_scope.effects` | One-shot patch |
+| --- | --- | --- |
+| `useCookie('x')` | 4→54 / 4→54 / 2→52 | 3→3 / 3→3 / 1→1 |
+| `readonly: true` | 4→54 / 4→54 / 1→1 | 3→3 / 3→3 / 1→1 |
+| before and after an `await` | 5→105 / 4→54 / 2→52 | 3→3 / 3→3 / 1→1 |
+| after an `await` only | 4→54 / 3→3 / 1→1 | 3→3 / 3→3 / 1→1 |
+| `{ maxAge: 60 }` | 4→54 / 4→54 / 3→103 | 3→3 / 3→3 / **2→52** |
+| alternating options | 4→54 / 4→54 / 2→77 | 3→3 / 3→3 / **1→26** |
+
+The baseline of 3 is the plugin and the two refs in `app.vue`, which this branch adds.
+
+With the patch, freshness is the same as unpatched. Whether the write comes from a component ref, `document.cookie` or a server `Set-Cookie`, the middleware reads the new value before and after an `await`, with and without Cookie Store, with no delay and with 100 ms.
+
+Other checks (✓ = works, ✗ = doesn't):
+
+| Check | Unpatched, Cookie Store | Unpatched, no Cookie Store | Patched, Cookie Store | Patched, no Cookie Store |
+| --- | --- | --- | --- | --- |
+| A plugin ref follows a component ref write | ✓ | ✓ | ✓ | ✓ |
+| A plugin ref follows a `document.cookie` write | ✓ | ✗ (no notification exists) | ✓ | ✗ (same) |
+| A ref created in `setTimeout` (no scope) follows a later `document.cookie` write | ✓ | ✗ (same) | **✗** | ✗ |
+| A plain assignment in middleware reaches `document.cookie` | ✓ | ✓ | ✓ | ✓ |
+| ...and reaches a long-lived ref in `app.vue` | ✓ | ✓ | ✓ | **✗** (no BroadcastChannel message) |
+| A deep mutation in middleware reaches `document.cookie` | ✓ | ✓ | **✗** | **✗** |
+| A ref created in `app._scope` during middleware follows a later `document.cookie` write | ✓ | ✗ (same) | **✗** | ✗ |
+
+Notes:
+- With `maxAge` or `expires`, the ref is built by Nuxt's internal `cookieRef` before the one-shot check. That ref creates its own watcher in the current scope and registers a scope cleanup and a timeout, so those calls still leak watchers.
+- `_processingMiddleware` stays set for the whole middleware chain. Any code that runs in `app._scope` during that window gets a one-shot ref, including an app-lifetime ref created lazily there, which then never updates.

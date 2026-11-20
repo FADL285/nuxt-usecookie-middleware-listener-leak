@@ -14,5 +14,10 @@
   },
   "devDependencies": {
     "@playwright/test": "1.52.0"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "nuxt@4.6.4": "patches/nuxt@4.6.4.patch"
+    }
   }
 }

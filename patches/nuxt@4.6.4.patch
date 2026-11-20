@@ -1,0 +1,41 @@
+diff --git a/dist/app/composables/cookie.js b/dist/app/composables/cookie.js
+index ba5298851d5f7cead49f3fd9b265b1ac9878a75b..17e3e773c1f595bb9b7f982e77a2308b078277b0 100644
+--- a/dist/app/composables/cookie.js
++++ b/dist/app/composables/cookie.js
+@@ -35,6 +35,12 @@ const CookieDefaults = {
+ 	refresh: false
+ };
+ const store = import.meta.client && cookieStore ? globalThis.cookieStore : void 0;
++function isOneShotCall() {
++	const scope = getCurrentScope();
++	if (!scope) return true;
++	const app = tryUseNuxtApp();
++	return !!app && scope === app._scope && !!app._processingMiddleware;
++}
+ function useCookie(name, _opts) {
+ 	const opts = {
+ 		...CookieDefaults,
+@@ -67,6 +73,23 @@ function useCookie(name, _opts) {
+ 		if (initialValue !== void 0 && initialValue !== null) updateServerCookieJar(nuxtApp, name, opts.encode(initialValue));
+ 	}
+ 	if (import.meta.dev && hasExpired) stateDiagnostics.NUXT_E7005({ name });
++	// Sketch from nuxt/nuxt#37169 (atokim4, 2026-11-20): one-shot calls register no listener, writer or watcher.
++	if (import.meta.client && isOneShotCall()) {
++		if (shouldSetInitialClientCookie) writeClientCookie(name, opts.encode(cookie.value), opts);
++		if (opts.readonly) return cookie;
++		let current = cookie.value;
++		return customRef((track, trigger) => ({
++			get() {
++				track();
++				return current;
++			},
++			set(v) {
++				current = v;
++				writeClientCookie(name, v == null ? void 0 : opts.encode(v), opts);
++				trigger();
++			}
++		}));
++	}
+ 	if (import.meta.client) {
+ 		let skipRefresh = false;
+ 		let channel = null;
