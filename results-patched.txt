@@ -1,0 +1,25 @@
+## mode: none
+cookieStore, 50 navs: listeners 0 -> 0, writers 0 -> 0, appScopeEffects 0 -> 0
+no cookieStore, 50 navs: channels 0 -> 0, writers 0 -> 0, appScopeEffects 0 -> 0
+## mode: default
+cookieStore, 50 navs: listeners 1 -> 1, writers 1 -> 1, appScopeEffects 1 -> 1
+no cookieStore, 50 navs: channels 1 -> 1, writers 1 -> 1, appScopeEffects 1 -> 1
+## mode: readonly
+cookieStore, 50 navs: listeners 1 -> 1, writers 1 -> 1, appScopeEffects 0 -> 0
+no cookieStore, 50 navs: channels 1 -> 1, writers 1 -> 1, appScopeEffects 0 -> 0
+## mode: alt-options
+cookieStore, 50 navs: listeners 1 -> 51, writers 1 -> 51, appScopeEffects 1 -> 76
+no cookieStore, 50 navs: channels 1 -> 51, writers 1 -> 51, appScopeEffects 1 -> 76
+## mode: inline-default
+cookieStore, 50 navs: listeners 1 -> 1, writers 1 -> 1, appScopeEffects 1 -> 1
+no cookieStore, 50 navs: channels 1 -> 1, writers 1 -> 1, appScopeEffects 1 -> 1
+## mode: no-scope
+cookieStore, 50 navs: listeners 1 -> 51, writers 0 -> 0, appScopeEffects 0 -> 0
+no cookieStore, 50 navs: channels 1 -> 51, writers 0 -> 0, appScopeEffects 0 -> 0
+## freshness (mode: default)
+cookieStore, component write -> STALE (wrote 101, middleware read undefined), STALE (wrote 102, middleware read 101), STALE (wrote 103, middleware read 102)
+cookieStore, document write -> STALE (wrote 104, middleware read 103), STALE (wrote 105, middleware read 104), STALE (wrote 106, middleware read 105)
+cookieStore, server write -> fresh, fresh, fresh
+no cookieStore, component write -> STALE (wrote 101, middleware read undefined), STALE (wrote 102, middleware read 101), STALE (wrote 103, middleware read 102)
+no cookieStore, document write -> STALE (wrote 104, middleware read 103), STALE (wrote 105, middleware read 103), STALE (wrote 106, middleware read 103)
+no cookieStore, server write -> STALE (wrote 107, middleware read 103), STALE (wrote 108, middleware read 103), STALE (wrote 109, middleware read 103)
