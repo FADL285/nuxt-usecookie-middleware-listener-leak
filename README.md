@@ -59,6 +59,18 @@ Start → after 50 navigations between `/a` and `/b` (Chromium):
 
 With and without Cookie Store the numbers are the same. Freshness: the middleware sees every write, with any delay and in either mode.
 
+## Fix sketches from the issue thread
+
+Each sketch from [#37169](https://github.com/nuxt/nuxt/issues/37169) is applied as a pnpm patch on its own branch. Each branch's README has its results:
+
+| Branch | Sketch | Result |
+| --- | --- | --- |
+| [`try-app-scope-ref-cache`](https://github.com/FADL285/nuxt-usecookie-middleware-listener-leak/tree/try-app-scope-ref-cache) | One cached ref per cookie in `app._scope` ([comment](https://github.com/nuxt/nuxt/issues/37169#issuecomment-7032957984)) | Flat for plain calls, but middleware reads go stale; calls after an `await` and alternating options still leak |
+| [`try-one-shot-calls`](https://github.com/FADL285/nuxt-usecookie-middleware-listener-leak/tree/try-one-shot-calls) | One-shot refs with no scope, or in `app._scope` while middleware runs ([comment](https://github.com/nuxt/nuxt/issues/37169#issuecomment-7041850360)) | Flat and fresh, but `maxAge` still leaks, deep writes are dropped, and some long-lived refs freeze |
+| [`try-navigation-scope`](https://github.com/FADL285/nuxt-usecookie-middleware-listener-leak/tree/try-navigation-scope) | A child scope per navigation that scope-less calls adopt ([comment](https://github.com/nuxt/nuxt/issues/37169#issuecomment-7062405307)) | Flat, fresh and no frozen refs; only overlapping navigations can lose a write or leak a listener |
+
+The section below is the first sketch's summary.
+
 ## Trying the app-scope ref cache from the issue thread
 
 Branch [`try-app-scope-ref-cache`](https://github.com/FADL285/nuxt-usecookie-middleware-listener-leak/tree/try-app-scope-ref-cache) applies the sketch from [the comment on #37169](https://github.com/nuxt/nuxt/issues/37169) as a pnpm patch. When `useCookie` runs directly in `app._scope`, the patched version returns one cached ref per cookie name and options. Its results are in `results-patched.txt` on that branch.
