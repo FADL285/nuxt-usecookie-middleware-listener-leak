@@ -28,6 +28,8 @@ async function navigate(times) {
 }
 
 if (CHECK === 'plugin') {
+  // Navigate first: a plugin ref must not be adopted by, or stopped with, a navigation's scope.
+  await navigate(5)
   await page.evaluate(() => window.__setPluginCookie('from-component'))
   await settle()
   const a = await page.evaluate(() => window.__pluginCookie())

@@ -60,6 +60,30 @@ export default defineNuxtRouteMiddleware(async (to) => {
       // Only navigations to /b wait, so a navigation to /b can outlast the initial one.
       if (to.path === '/b') await new Promise(resolve => setTimeout(resolve, 200))
       return seen(useCookie('x').value)
+    case 'maxage-both':
+      // An expiring cookie read once before an await and once after it.
+      useCookie('x', { maxAge: 60 }).value
+      await Promise.resolve()
+      return seen(useCookie('x', { maxAge: 60 }).value)
+    case 'overlap': {
+      // ?wait=N waits before reading, ?after=N waits again and then writes the path to the cookie.
+      // Records whether the call after the await ran in another navigation's scope, or in none.
+      const nuxtApp = useNuxtApp() as any
+      const own = nuxtApp._middlewareScope
+      const wait = Number(to.query.wait || 0)
+      const after = Number(to.query.after || 0)
+      if (wait) await new Promise(resolve => setTimeout(resolve, wait))
+      const current = nuxtApp._middlewareScope
+      const c = useCookie<string | null>('o')
+      if (import.meta.client) {
+        ;((window as any).__overlap ||= []).push({ path: to.path, adoptedOther: !!current && current !== own, noScope: !current })
+      }
+      if (after) {
+        await new Promise(resolve => setTimeout(resolve, after))
+        c.value = to.path
+      }
+      return
+    }
     case 'no-scope':
       // After an await the effect scope is no longer active.
       await Promise.resolve()

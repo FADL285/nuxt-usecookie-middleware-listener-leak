@@ -34,6 +34,7 @@ export async function openPage({ noCookieStore }) {
         channels,
         writers: app._cookieWriters?.size ?? 0,
         appScopeEffects: app._scope.effects.length,
+        appScopeScopes: app._scope.scopes?.length ?? 0,
       }
     }
   }, noCookieStore)

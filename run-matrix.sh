@@ -9,7 +9,7 @@ start() {
 }
 stop() { kill "$(ss -ltnp "sport = :$PORT" | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2)"; sleep 0.5; }
 
-for mode in none default readonly alt-options inline-default maxage no-scope both; do
+for mode in none default readonly alt-options inline-default maxage no-scope both maxage-both; do
   echo "## mode: $mode"
   start "$mode"
   node count-all.mjs "http://127.0.0.1:$PORT" 50

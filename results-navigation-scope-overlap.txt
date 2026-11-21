@@ -1,0 +1,13 @@
+## overlap, navigation-scope patch
+cookieStore, case A: first navigation's call after the await ran in the other navigation's scope 10/10, in no scope 0/10; its later write reached document.cookie 0/10
+  counters: listeners 4, channels 0, writers 4, effects 2, scopes 0  ->  after 10 overlaps: listeners 4, channels 0, writers 4, effects 2, scopes 0
+no cookieStore, case A: first navigation's call after the await ran in the other navigation's scope 10/10, in no scope 0/10; its later write reached document.cookie 0/10
+  counters: listeners 0, channels 4, writers 4, effects 2, scopes 0  ->  after 10 overlaps: listeners 0, channels 4, writers 4, effects 2, scopes 0
+cookieStore, case B: first navigation's call after the await ran in the other navigation's scope 0/10, in no scope 10/10; its later write reached document.cookie n/a
+  counters: listeners 4, channels 0, writers 4, effects 2, scopes 0  ->  after 10 overlaps: listeners 14, channels 0, writers 4, effects 2, scopes 0
+no cookieStore, case B: first navigation's call after the await ran in the other navigation's scope 0/10, in no scope 10/10; its later write reached document.cookie n/a
+  counters: listeners 0, channels 4, writers 4, effects 2, scopes 0  ->  after 10 overlaps: listeners 0, channels 14, writers 4, effects 2, scopes 0
+cookieStore, case C: first navigation's call after the await ran in the other navigation's scope 0/10, in no scope 0/10; its later write reached document.cookie 10/10
+  counters: listeners 4, channels 0, writers 4, effects 2, scopes 0  ->  after 10 overlaps: listeners 4, channels 0, writers 4, effects 2, scopes 0
+no cookieStore, case C: first navigation's call after the await ran in the other navigation's scope 0/10, in no scope 0/10; its later write reached document.cookie 10/10
+  counters: listeners 0, channels 4, writers 4, effects 2, scopes 0  ->  after 10 overlaps: listeners 0, channels 4, writers 4, effects 2, scopes 0

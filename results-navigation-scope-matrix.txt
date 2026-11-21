@@ -1,0 +1,64 @@
+## mode: none
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## mode: default
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## mode: readonly
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## mode: alt-options
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## mode: inline-default
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## mode: maxage
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## mode: no-scope
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## mode: both
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## mode: maxage-both
+cookieStore, 50 navs: listeners 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+no cookieStore, 50 navs: channels 4 -> 4, writers 4 -> 4, appScopeEffects 2 -> 2
+## freshness (mode: default)
+cookieStore, delay 0ms, component write -> fresh, fresh, fresh
+cookieStore, delay 0ms, document write -> fresh, fresh, fresh
+cookieStore, delay 0ms, server write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, component write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, document write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, server write -> fresh, fresh, fresh
+cookieStore, delay 100ms, component write -> fresh, fresh, fresh
+cookieStore, delay 100ms, document write -> fresh, fresh, fresh
+cookieStore, delay 100ms, server write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, component write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, document write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, server write -> fresh, fresh, fresh
+## freshness (mode: no-scope)
+cookieStore, delay 0ms, component write -> fresh, fresh, fresh
+cookieStore, delay 0ms, document write -> fresh, fresh, fresh
+cookieStore, delay 0ms, server write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, component write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, document write -> fresh, fresh, fresh
+no cookieStore, delay 0ms, server write -> fresh, fresh, fresh
+cookieStore, delay 100ms, component write -> fresh, fresh, fresh
+cookieStore, delay 100ms, document write -> fresh, fresh, fresh
+cookieStore, delay 100ms, server write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, component write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, document write -> fresh, fresh, fresh
+no cookieStore, delay 100ms, server write -> fresh, fresh, fresh
+## one-shot checks
+cookieStore, plugin: component write -> OK (plugin read from-component); document.cookie write -> OK (plugin read from-document)
+no cookieStore, plugin: component write -> OK (plugin read from-component); document.cookie write -> FAIL (plugin read from-component)
+cookieStore, timer: initial read -> OK (read before); after a later document.cookie write -> OK (read after)
+no cookieStore, timer: initial read -> OK (read before); after a later document.cookie write -> FAIL (read before)
+cookieStore, mw-write: document.cookie -> OK (middleware wrote 4, document.cookie has 4); app-level ref -> OK (app ref reads 4)
+no cookieStore, mw-write: document.cookie -> OK (middleware wrote 4, document.cookie has 4); app-level ref -> OK (app ref reads 4)
+cookieStore, mw-deep: document.cookie -> OK (middleware set n=4, cookie has n=4)
+no cookieStore, mw-deep: document.cookie -> OK (middleware set n=4, cookie has n=4)
+cookieStore, shared: after a later document.cookie write -> OK (shared ref reads after)
+no cookieStore, shared: after a later document.cookie write -> FAIL (shared ref reads undefined)

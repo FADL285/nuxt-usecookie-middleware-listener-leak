@@ -1,0 +1,16 @@
+## SSR build, navigation-scope patch, middleware: default, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, navigation-scope patch, middleware: default, plugin navigation without await: yes
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, navigation-scope patch, middleware: slow-b, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, navigation-scope patch, middleware: slow-b, plugin navigation without await: yes
+cookieStore, setup: flag set in vue:setup 10/10; ref follows a later document.cookie write 10/10 (10/10 of the flagged runs)
+## client-only build (ssr: false), navigation-scope patch, middleware: default, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), navigation-scope patch, middleware: default, plugin navigation without await: yes
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), navigation-scope patch, middleware: slow-b, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), navigation-scope patch, middleware: slow-b, plugin navigation without await: yes
+cookieStore, setup: flag set in vue:setup 10/10; ref follows a later document.cookie write 10/10 (10/10 of the flagged runs)

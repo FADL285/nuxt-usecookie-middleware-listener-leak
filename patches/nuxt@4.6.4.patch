@@ -1,43 +1,57 @@
 diff --git a/dist/app/composables/cookie.js b/dist/app/composables/cookie.js
-index ba5298851d5f7cead49f3fd9b265b1ac9878a75b..17e3e773c1f595bb9b7f982e77a2308b078277b0 100644
+index ba52988..f1dff3b 100644
 --- a/dist/app/composables/cookie.js
 +++ b/dist/app/composables/cookie.js
-@@ -35,6 +35,14 @@ const CookieDefaults = {
- 	refresh: false
+@@ -36,6 +36,11 @@ const CookieDefaults = {
  };
  const store = import.meta.client && cookieStore ? globalThis.cookieStore : void 0;
-+function isOneShotCall() {
-+	const scope = getCurrentScope();
-+	const app = tryUseNuxtApp();
-+	// NUXT_PUBLIC_ONE_SHOT=middleware-only: the narrower condition, one-shot only while middleware runs.
-+	if (app?.$config?.public?.oneShot === "middleware-only") return (!scope || scope === app._scope) && !!app._processingMiddleware;
-+	if (!scope) return true;
-+	return !!app && scope === app._scope && !!app._processingMiddleware;
-+}
  function useCookie(name, _opts) {
++	// Sketch from nuxt/nuxt#37169 (atokim4, 2026-11-21): a scope-less call adopts the current navigation's scope.
++	if (import.meta.client && !getCurrentScope()) {
++		const scope = tryUseNuxtApp()?._middlewareScope;
++		if (scope?.active) return scope.run(() => useCookie(name, _opts));
++	}
  	const opts = {
  		...CookieDefaults,
-@@ -67,6 +75,23 @@ function useCookie(name, _opts) {
- 		if (initialValue !== void 0 && initialValue !== null) updateServerCookieJar(nuxtApp, name, opts.encode(initialValue));
- 	}
- 	if (import.meta.dev && hasExpired) stateDiagnostics.NUXT_E7005({ name });
-+	// Sketch from nuxt/nuxt#37169 (atokim4, 2026-11-20): one-shot calls register no listener, writer or watcher.
-+	if (import.meta.client && isOneShotCall()) {
-+		if (shouldSetInitialClientCookie) writeClientCookie(name, opts.encode(cookie.value), opts);
-+		if (opts.readonly) return cookie;
-+		let current = cookie.value;
-+		return customRef((track, trigger) => ({
-+			get() {
-+				track();
-+				return current;
-+			},
-+			set(v) {
-+				current = v;
-+				writeClientCookie(name, v == null ? void 0 : opts.encode(v), opts);
-+				trigger();
-+			}
-+		}));
-+	}
- 	if (import.meta.client) {
- 		let skipRefresh = false;
- 		let channel = null;
+ 		..._opts
+diff --git a/dist/pages/runtime/plugins/router.js b/dist/pages/runtime/plugins/router.js
+index 5aaf8da..24f12cb 100644
+--- a/dist/pages/runtime/plugins/router.js
++++ b/dist/pages/runtime/plugins/router.js
+@@ -1,6 +1,6 @@
+ import { navigationDiagnostics } from "../../../app/diagnostics/navigation.js";
+ import { generateRouteKey, toArray } from "../utils.js";
+-import { isReadonly, reactive, shallowReactive, shallowRef } from "vue";
++import { effectScope, isReadonly, reactive, shallowReactive, shallowRef } from "vue";
+ import { serverPathFallback, tracingChannelNuxt } from "#build/nuxt.config.mjs";
+ import { isSamePath, withBase, withoutBase } from "ufo";
+ import { defineNuxtPlugin, useRuntimeConfig } from "#app/nuxt";
+@@ -151,13 +151,17 @@ const plugin = defineNuxtPlugin({
+ 		router.beforeEach(async (to, from) => {
+ 			if (import.meta.server) return runMiddleware(to, from);
+ 			runningMiddleware++;
++			const scope = nuxtApp._scope.run(() => effectScope());
++			nuxtApp._middlewareScope = scope;
+ 			try {
+-				return await runMiddleware(to, from);
++				return await runMiddleware(to, from, scope);
+ 			} finally {
+ 				if (--runningMiddleware === 0) delete nuxtApp._processingMiddleware;
++				if (nuxtApp._middlewareScope === scope) delete nuxtApp._middlewareScope;
++				scope.stop();
+ 			}
+ 		});
+-		async function runMiddleware(to, from) {
++		async function runMiddleware(to, from, scope) {
+ 			await nuxtApp.callHook("page:loading:start");
+ 			to.meta = reactive(to.meta);
+ 			if (nuxtApp.isHydrating && initialLayout && !isReadonly(to.meta.layout)) to.meta.layout = initialLayout;
+@@ -181,7 +185,7 @@ const plugin = defineNuxtPlugin({
+ 					});
+ 					try {
+ 						if (import.meta.dev) nuxtApp._processingMiddleware = middleware._path || (typeof entry === "string" ? entry : true);
+-						const run = () => nuxtApp.runWithContext(() => middleware(to, from));
++						const run = () => scope ? scope.run(() => nuxtApp.runWithContext(() => middleware(to, from))) : nuxtApp.runWithContext(() => middleware(to, from));
+ 						const result = await (import.meta.server && tracingChannelNuxt ? traceAsync("nuxt.middleware", { middleware: {
+ 							name: typeof entry === "string" ? entry : middleware._name || middleware.name || void 0,
+ 							path: middleware._path,

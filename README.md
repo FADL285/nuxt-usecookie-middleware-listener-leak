@@ -147,3 +147,36 @@ Notes:
 | Sketch or narrower condition, plugin navigation + slower middleware | 10/10 | **0/10** |
 
 The patched rows are the same for the SSR and the client-only (`REPRO_SSR=false pnpm build`) builds. With plain middleware, both navigations finish inside `app:created`, so this needs the plugin's navigation to take longer than the initial one.
+
+## Trying a per-navigation scope (third sketch from the issue thread)
+
+Branch `try-navigation-scope` applies the [third sketch](https://github.com/nuxt/nuxt/issues/37169#issuecomment-7062405307) as a pnpm patch, in place of the one-shot patch. The client `beforeEach` creates a child scope of `app._scope`, stores it as `nuxtApp._middlewareScope`, runs each middleware inside it and stops it in `finally`. A `useCookie` call with no active scope adopts `_middlewareScope` while it is active.
+
+The harness from `try-one-shot-calls` is reused. New here:
+- the `maxage-both` mode (a `{ maxAge: 60 }` call before an `await` and one after);
+- the `overlap` mode, `overlap.mjs` and `run-overlap.sh`;
+- the plugin check navigates five times before it checks.
+
+Results: `results-navigation-scope-matrix.txt`, `results-navigation-scope-setup-race.txt`, `results-navigation-scope-overlap.txt`, and `results-navigation-scope-overlap-baseline.txt` (unpatched).
+
+With the patch (Chromium, 50 navigations, with and without Cookie Store):
+- Every middleware variant stays flat at 4 listeners or channels, 4 writers and 2 effects, including `{ maxAge: 60 }`, alternating options, after an `await`, and `maxage-both`.
+- Every freshness check is fresh, before and after an `await`, at 0 and 100 ms.
+- These match unpatched: the plugin ref (after five navigations), the `setTimeout` ref, the lazy `_scope.run` ref, a plain write in middleware (it reaches `document.cookie` and the `app.vue` ref), and a deep write in middleware (it reaches `document.cookie`).
+- The `vue:setup` race: `_processingMiddleware` is still set in 10 of 10 loads with the slower plugin navigation, but the ref created there follows the cookie in 10 of 10 (SSR and client-only builds). Calls in `app._scope` are never adopted.
+
+### Overlapping navigations
+
+The first navigation goes to `/b`. Its middleware waits 300 ms, calls `useCookie('o')` and, in A and C, waits 300 ms more and writes `'/b'`. A second navigation starts 50 ms later and replaces `_middlewareScope`. 10 overlaps per case, on one page; the counts are listeners / writers / effects.
+
+| Case | Patched: the first navigation's call after the `await` | Patched: its later write lands | Patched counts | Unpatched counts |
+| --- | --- | --- | --- | --- |
+| A: the second navigation (`/a?wait=400`) is still running when the first resumes, and ends before the first writes | adopted by the second navigation's scope 10/10 | **0/10** (unpatched 10/10) | 4→4 / 4→4 / 2→2 | 5→35 / 5→15 / 3→13 |
+| B: the second navigation (`/a?fast=1`) ends before the first resumes | no scope 10/10 | n/a | **4→14** / 4→4 / 2→2 | 5→35 / 5→25 / 3→23 |
+| C: control, one slow navigation | its own scope | 10/10 | 4→4 / 4→4 / 2→2 | 5→25 / 5→15 / 3→13 |
+
+`_middlewareScope` holds only the latest navigation:
+- In A, the first navigation's ref lives in the second navigation's scope and dies with it, so a later write is lost.
+- In B, the second navigation's `finally` deletes `_middlewareScope` while the first is still running, so the first navigation's call takes the plain no-scope path and leaks a listener (or channel) per overlap.
+
+In both cases the first navigation has already been replaced by the second.
