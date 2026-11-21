@@ -2,20 +2,22 @@ diff --git a/dist/app/composables/cookie.js b/dist/app/composables/cookie.js
 index ba5298851d5f7cead49f3fd9b265b1ac9878a75b..17e3e773c1f595bb9b7f982e77a2308b078277b0 100644
 --- a/dist/app/composables/cookie.js
 +++ b/dist/app/composables/cookie.js
-@@ -35,6 +35,12 @@ const CookieDefaults = {
+@@ -35,6 +35,14 @@ const CookieDefaults = {
  	refresh: false
  };
  const store = import.meta.client && cookieStore ? globalThis.cookieStore : void 0;
 +function isOneShotCall() {
 +	const scope = getCurrentScope();
-+	if (!scope) return true;
 +	const app = tryUseNuxtApp();
++	// NUXT_PUBLIC_ONE_SHOT=middleware-only: the narrower condition, one-shot only while middleware runs.
++	if (app?.$config?.public?.oneShot === "middleware-only") return (!scope || scope === app._scope) && !!app._processingMiddleware;
++	if (!scope) return true;
 +	return !!app && scope === app._scope && !!app._processingMiddleware;
 +}
  function useCookie(name, _opts) {
  	const opts = {
  		...CookieDefaults,
-@@ -67,6 +73,23 @@ function useCookie(name, _opts) {
+@@ -67,6 +75,23 @@ function useCookie(name, _opts) {
  		if (initialValue !== void 0 && initialValue !== null) updateServerCookieJar(nuxtApp, name, opts.encode(initialValue));
  	}
  	if (import.meta.dev && hasExpired) stateDiagnostics.NUXT_E7005({ name });

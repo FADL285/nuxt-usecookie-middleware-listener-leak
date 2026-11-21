@@ -3,7 +3,7 @@
 let calls = 0
 let shared: Ref<string | null> | undefined
 
-export default defineNuxtRouteMiddleware(async () => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const mode = useRuntimeConfig().public.mode
   const seen = (value: unknown) => {
     if (import.meta.client) ((window as any).__seen ||= []).push(value)
@@ -52,6 +52,14 @@ export default defineNuxtRouteMiddleware(async () => {
         ;(window as any).__sharedRef = shared
       }
       return
+    case 'slow':
+      // Middleware that awaits something (a fetch, a timer) before it reads the cookie.
+      await new Promise(resolve => setTimeout(resolve, 50))
+      return seen(useCookie('x').value)
+    case 'slow-b':
+      // Only navigations to /b wait, so a navigation to /b can outlast the initial one.
+      if (to.path === '/b') await new Promise(resolve => setTimeout(resolve, 200))
+      return seen(useCookie('x').value)
     case 'no-scope':
       // After an await the effect scope is no longer active.
       await Promise.resolve()

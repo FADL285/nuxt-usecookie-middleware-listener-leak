@@ -1,0 +1,40 @@
+## client-only build (ssr: false), patched, middleware: default, one-shot condition: sketch, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), patched, middleware: default, one-shot condition: sketch, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), patched, middleware: default, one-shot condition: middleware-only, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), patched, middleware: default, one-shot condition: middleware-only, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), patched, middleware: slow-b, one-shot condition: sketch, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), patched, middleware: slow-b, one-shot condition: sketch, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 10/10; ref follows a later document.cookie write 0/10 (0/10 of the flagged runs)
+## client-only build (ssr: false), patched, middleware: slow-b, one-shot condition: middleware-only, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## client-only build (ssr: false), patched, middleware: slow-b, one-shot condition: middleware-only, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 10/10; ref follows a later document.cookie write 0/10 (0/10 of the flagged runs)
+## SSR build, patched, middleware: default, one-shot condition: sketch, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, patched, middleware: default, one-shot condition: sketch, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, patched, middleware: default, one-shot condition: middleware-only, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, patched, middleware: default, one-shot condition: middleware-only, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, patched, middleware: slow-b, one-shot condition: sketch, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, patched, middleware: slow-b, one-shot condition: sketch, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 10/10; ref follows a later document.cookie write 0/10 (0/10 of the flagged runs)
+## SSR build, patched, middleware: slow-b, one-shot condition: middleware-only, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, patched, middleware: slow-b, one-shot condition: middleware-only, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 10/10; ref follows a later document.cookie write 0/10 (0/10 of the flagged runs)
+## SSR build, unpatched, middleware: default, one-shot condition: sketch, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, unpatched, middleware: default, one-shot condition: sketch, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, unpatched, middleware: slow-b, one-shot condition: sketch, plugin navigation without await: no
+cookieStore, setup: flag set in vue:setup 0/10; ref follows a later document.cookie write 10/10 (0/0 of the flagged runs)
+## SSR build, unpatched, middleware: slow-b, one-shot condition: sketch, plugin navigation without await: 1
+cookieStore, setup: flag set in vue:setup 10/10; ref follows a later document.cookie write 10/10 (10/10 of the flagged runs)

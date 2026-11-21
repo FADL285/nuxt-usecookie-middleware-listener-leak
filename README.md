@@ -124,3 +124,26 @@ Other checks (✓ = works, ✗ = doesn't):
 Notes:
 - With `maxAge` or `expires`, the ref is built by Nuxt's internal `cookieRef` before the one-shot check. That ref creates its own watcher in the current scope and registers a scope cleanup and a timeout, so those calls still leak watchers.
 - `_processingMiddleware` stays set for the whole middleware chain. Any code that runs in `app._scope` during that window gets a one-shot ref, including an app-lifetime ref created lazily there, which then never updates.
+
+### A narrower condition: one-shot only while middleware runs
+
+`NUXT_PUBLIC_ONE_SHOT=middleware-only` switches the patch to `(!scope || scope === app._scope) && app?._processingMiddleware`, so a call with no scope outside middleware takes the normal path again. The results are in `results-one-shot-middleware-only.txt` (from `NUXT_PUBLIC_ONE_SHOT=middleware-only ./run-matrix.sh`). This build also creates a ref in `vue:setup` (below), so the baseline is 4 listeners and writers and 2 effects.
+
+- Counters: the same as the sketch. Every variant stays flat, except `{ maxAge: 60 }` (effects 3 → 53) and alternating options (2 → 27).
+- Freshness: fresh in every case, as with the sketch.
+- A plugin ref still follows component and `document.cookie` writes.
+- The `setTimeout` ref follows a later `document.cookie` write again with Cookie Store (the sketch: ✗).
+- Unchanged from the sketch: the middleware write still doesn't reach the `app.vue` ref without Cookie Store, deep mutations still aren't written, and a ref created in `app._scope` during middleware still never updates.
+
+### The flag can still be set in `vue:setup`
+
+`app:created` awaits the initial `router.replace`, so the initial middleware normally finishes before the app mounts. A plugin that starts a navigation without `await` (`NUXT_PUBLIC_RACE=1`, `app/plugins/race.client.ts`) adds a second navigation. If its middleware is still running when the initial one finishes (`NUXT_PUBLIC_MODE=slow-b`: navigations to `/b` wait 200 ms), `runningMiddleware` doesn't reach 0, and `_processingMiddleware` is still set when `vue:setup` runs. `app/plugins/probe.client.ts` creates a ref with `nuxtApp._scope.run(() => useCookie('v'))` in `vue:setup`. `./run-setup-race.sh` runs 10 fresh loads per case; the results are in `results-setup-race.txt`.
+
+| Case (Cookie Store, 10 loads) | Flag set in `vue:setup` | Ref follows a later `document.cookie` write |
+| --- | --- | --- |
+| Unpatched, plugin navigation + slower middleware | 10/10 | 10/10 |
+| Sketch or narrower condition, no plugin navigation | 0/10 | 10/10 |
+| Sketch or narrower condition, plugin navigation, plain middleware | 0/10 | 10/10 |
+| Sketch or narrower condition, plugin navigation + slower middleware | 10/10 | **0/10** |
+
+The patched rows are the same for the SSR and the client-only (`REPRO_SSR=false pnpm build`) builds. With plain middleware, both navigations finish inside `app:created`, so this needs the plugin's navigation to take longer than the initial one.
